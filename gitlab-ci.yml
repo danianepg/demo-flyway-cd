@@ -1,0 +1,31 @@
+stages:
+  - build-docker-image
+  - execute-migrations
+  
+build-docker-image:
+  stage: build-docker-image
+  image:
+    name: <MY_PROJECT_ON_GITLAB>:latest
+    entrypoint: [""]
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json    
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/db-migrations/Dockerfile --destination $AWS_REPOS_FLYWAY:latest
+  only:
+    refs:
+      - <MY_BRANCH_ON_GITLAB>
+    changes:
+      - db-migrations/scripts/*
+
+execute-migrations:
+  stage: execute-migrations
+  image: python:3.8-alpine
+  before_script:
+    - apk add --no-cache python3
+    - python3 -m pip install awscli
+  script:
+    - aws lambda invoke --function-name MyLambdaToTriggerFlyway response.json
+  only:
+    refs:
+      - <MY_BRANCH_ON_GITLAB>
+    changes:
+      - db-migrations/scripts/*
