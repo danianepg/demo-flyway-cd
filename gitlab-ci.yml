@@ -5,7 +5,7 @@ stages:
 build-docker-image:
   stage: build-docker-image
   image:
-    name: <MY_PROJECT_ON_GITLAB>:latest
+    name: gcr.io/kaniko-project/executor:debug-v0.19.0
     entrypoint: [""]
   script:
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json    
